@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LedgerFlow – Distributed Double-Entry Financial Engine</title>
+    <meta name="description" content="Production-grade financial ledger engine with double-entry bookkeeping, ACID multi-document transactions, and cryptographic idempotency.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="dark-theme">
+    <!-- Ambient Background Glows -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <!-- Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-group">
+                <div class="brand-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">LedgerFlow</span>
+                    <span class="engine-tag">ACID CORE v1.0</span>
+                </div>
+            </div>
+
+            <div class="system-status-indicator" id="apiStatusIndicator" title="Click to view or set Backend API Server URL" style="cursor: pointer;">
+                <span class="pulse-dot"></span>
+                <span class="status-label">ACID Engine: <strong class="text-emerald" id="statusEngineText">Online</strong> ⚙</span>
+            </div>
+
+            <div class="nav-actions" id="navActions">
+                <!-- Injected via app.js depending on auth state -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-wrapper" id="mainApp">
+        <!-- Auth View (Shown when logged out) -->
+        <section class="auth-section" id="authSection">
+            <div class="auth-hero">
+                <div class="badge-pill">
+                    <span class="sparkle">✦</span> Production Financial Engine
+                </div>
+                <h1 class="hero-heading">Double-Entry Bookkeeping with <span class="gradient-text">ACID Guarantees</span></h1>
+                <p class="hero-subtitle">
+                    Unlike naive CRUD balance mutations, LedgerFlow models state through immutable paired debit/credit journals, zero-loss snapshot isolation, and cryptographic idempotency.
+                </p>
+
+                <div class="recruiter-fast-track">
+                    <button class="btn btn-emerald btn-lg btn-glow" id="demoUserLoginBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        One-Click Recruiter Demo Access
+                    </button>
+                    <span class="fast-track-sub">Instantly spins up an authenticated session pre-seeded with test accounts & funds.</span>
+                </div>
+            </div>
+
+            <div class="auth-card-wrapper">
+                <div class="auth-card glass-panel">
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" id="tabLoginBtn">Sign In</button>
+                        <button class="auth-tab" id="tabRegisterBtn">Create Account</button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form class="auth-form" id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail">Email Address</label>
+                            <input type="email" id="loginEmail" placeholder="name@company.com" required autocomplete="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
+                            <span>Sign In to Dashboard</span>
+                        </button>
+                    </form>
+
+                    <!-- Register Form -->
+                    <form class="auth-form hidden" id="registerForm">
+                        <div class="form-group">
+                            <label for="regName">Full Name</label>
+                            <input type="text" id="regName" placeholder="Alex Morgan" required autocomplete="name">
+                        </div>
+                        <div class="form-group">
+                            <label for="regEmail">Email Address</label>
+                            <input type="email" id="regEmail" placeholder="alex@company.com" required autocomplete="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Password (6+ characters)</label>
+                            <input type="password" id="regPassword" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block" id="regSubmitBtn">
+                            <span>Create Ledger Account</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard View (Shown when logged in) -->
+        <section class="dashboard-section hidden" id="dashboardSection">
+            <!-- Top Metric Stats -->
+            <div class="stats-grid">
+                <div class="stat-card glass-panel">
+                    <div class="stat-meta">
+                        <span class="stat-title">Net Cumulative Balance</span>
+                        <div class="stat-badge">Derived Invariant</div>
+                    </div>
+                    <div class="stat-value-row">
+                        <span class="stat-symbol">₹</span>
+                        <span class="stat-number" id="netBalanceValue">0.00</span>
+                    </div>
+                    <div class="stat-foot">
+                        <span class="text-emerald">● $\sum(Credits) - \sum(Debits)$ verified</span>
+                    </div>
+                </div>
+
+                <div class="stat-card glass-panel">
+                    <div class="stat-meta">
+                        <span class="stat-title">Active Ledger Accounts</span>
+                        <div class="stat-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                <line x1="2" y1="10" x2="22" y2="10"></line>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-value-row">
+                        <span class="stat-number" id="activeAccountsCount">0</span>
+                    </div>
+                    <div class="stat-foot">
+                        <span>Multi-currency support</span>
+                    </div>
+                </div>
+
+                <div class="stat-card glass-panel">
+                    <div class="stat-meta">
+                        <span class="stat-title">Completed Transfers</span>
+                        <div class="stat-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-value-row">
+                        <span class="stat-number" id="totalTransfersCount">0</span>
+                    </div>
+                    <div class="stat-foot">
+                        <span class="text-emerald">ACID Multi-document isolated</span>
+                    </div>
+                </div>
+
+                <div class="stat-card glass-panel action-card">
+                    <span class="stat-title">Quick Actions</span>
+                    <div class="action-btn-stack">
+                        <button class="btn btn-emerald btn-block" id="openTransferModalBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <polyline points="19 12 12 19 5 12"></polyline>
+                            </svg>
+                            Execute Transfer
+                        </button>
+                        <button class="btn btn-secondary btn-block" id="openNewAccountModalBtn">
+                            + Open Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounts Section -->
+            <div class="content-block">
+                <div class="block-header">
+                    <div class="block-title-group">
+                        <h2 class="block-title">Your Ledger Accounts</h2>
+                        <span class="block-subtitle">Each account derives its real-time balance through immutable double-entry ledger journals.</span>
+                    </div>
+                    <button class="btn btn-outline btn-sm" id="refreshAccountsBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon spin-on-hover">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        Sync Balances
+                    </button>
+                </div>
+
+                <div class="accounts-grid" id="accountsGrid">
+                    <!-- Dynamic Account Cards injected via JS -->
+                </div>
+            </div>
+
+            <!-- Transactions Section -->
+            <div class="content-block">
+                <div class="block-header">
+                    <div class="block-title-group">
+                        <h2 class="block-title">Recent Transactions</h2>
+                        <span class="block-subtitle">ACID-executed atomic journal transfers with idempotent duplicate protection.</span>
+                    </div>
+                    <div class="filter-controls">
+                        <select id="txFilterStatus" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="FAILED">Failed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container glass-panel">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>From Account</th>
+                                <th>To Account</th>
+                                <th>Amount</th>
+                                <th>Idempotency Key</th>
+                                <th>Status</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody">
+                            <tr>
+                                <td colspan="7" class="empty-state-cell">Loading transactions...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Transfer Funds Modal -->
+    <div class="modal-overlay hidden" id="transferModal">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title">Execute ACID Transfer</h3>
+                    <p class="modal-subtitle">Creates paired DEBIT and CREDIT records inside a single MongoDB transaction session.</p>
+                </div>
+                <button class="btn-close" id="closeTransferModalBtn">&times;</button>
+            </div>
+
+            <form class="modal-form" id="transferForm">
+                <div class="form-group">
+                    <label for="transferFromAccount">Source Account (Debit)</label>
+                    <select id="transferFromAccount" class="form-select" required>
+                        <!-- Populated dynamically -->
+                    </select>
+                    <span class="form-hint" id="fromAccountBalanceHint">Available balance: calculating...</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="transferToAccount">Destination Account ID (Credit)</label>
+                    <input type="text" id="transferToAccount" placeholder="24-character MongoDB ObjectId" required>
+                    <div class="destination-quick-picks" id="destinationQuickPicks">
+                        <!-- Quick select other accounts owned by user -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="transferAmount">Amount</label>
+                    <div class="input-with-symbol">
+                        <span class="input-symbol">₹</span>
+                        <input type="number" id="transferAmount" min="1" step="0.01" placeholder="50.00" required>
+                    </div>
+                    <div class="quick-amounts">
+                        <button type="button" class="btn-chip" data-amt="50">+50</button>
+                        <button type="button" class="btn-chip" data-amt="100">+100</button>
+                        <button type="button" class="btn-chip" data-amt="250">+250</button>
+                        <button type="button" class="btn-chip" data-amt="500">+500</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="label-with-badge">
+                        <span>Idempotency Key</span>
+                        <span class="badge badge-emerald">Deduplication Guard</span>
+                    </label>
+                    <div class="input-with-button">
+                        <input type="text" id="transferIdempotencyKey" readonly required class="font-mono text-xs">
+                        <button type="button" class="btn btn-secondary btn-sm" id="regenerateIdempKeyBtn" title="Generate New Key">
+                            ↻ New Key
+                        </button>
+                    </div>
+                    <span class="form-hint">Guarantees safe network retries without double-charging.</span>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelTransferBtn">Cancel</button>
+                    <button type="submit" class="btn btn-emerald" id="submitTransferBtn">
+                        <span>Execute Transfer</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Account Modal -->
+    <div class="modal-overlay hidden" id="createAccountModal">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title">Create New Ledger Account</h3>
+                    <p class="modal-subtitle">Initializes an account entity ready for double-entry credit/debit journals.</p>
+                </div>
+                <button class="btn-close" id="closeCreateAccountModalBtn">&times;</button>
+            </div>
+
+            <form class="modal-form" id="createAccountForm">
+                <div class="form-group">
+                    <label for="newAccountCurrency">Account Currency</label>
+                    <select id="newAccountCurrency" class="form-select">
+                        <option value="INR" selected>INR – Indian Rupee (₹)</option>
+                        <option value="USD">USD – US Dollar ($)</option>
+                        <option value="EUR">EUR – Euro (€)</option>
+                        <option value="GBP">GBP – British Pound (£)</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelCreateAccountBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitCreateAccountBtn">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Account Statement / Ledger Audit Trail Drawer -->
+    <div class="drawer-overlay hidden" id="statementDrawer">
+        <div class="drawer-card glass-panel">
+            <div class="drawer-header">
+                <div class="drawer-title-group">
+                    <div class="badge badge-emerald">Immutable Audit Trail</div>
+                    <h3 class="drawer-title">Account Ledger Statement</h3>
+                    <p class="drawer-subtitle" id="statementAccountMeta">Account: -</p>
+                </div>
+                <button class="btn-close" id="closeStatementDrawerBtn">&times;</button>
+            </div>
+
+            <div class="drawer-balance-banner">
+                <div class="banner-label">Computed Snapshot Balance</div>
+                <div class="banner-value" id="statementBalanceValue">₹0.00</div>
+                <div class="banner-formula">Balance = Total Credits − Total Debits (Aggregated On-the-Fly)</div>
+            </div>
+
+            <div class="statement-entries-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Transaction Ref</th>
+                            <th>Created Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statementTableBody">
+                        <tr>
+                            <td colspan="4" class="empty-state-cell">Loading ledger records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Hub -->
+    <div class="toast-hub" id="toastHub"></div>
+
+    <script src="/js/config.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
