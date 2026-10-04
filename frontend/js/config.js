@@ -4,5 +4,5 @@
  * or click the "⚙" icon in the top header on your live website.
  */
 window.LEDGER_CONFIG = {
-    BACKEND_URL: "" // e.g. "https://ledgerflow-api.onrender.com"
+    BACKEND_URL: "https://backend-ledger-1h0i.onrender.com"
 };
