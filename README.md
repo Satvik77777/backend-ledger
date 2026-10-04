@@ -157,3 +157,22 @@ cd backend
 npm test
 ```
 All **16/16 tests pass** covering idempotency, IDOR authorization, ACID transactions, and ledger immutability.
+
+### 4. Running with Docker 🐳
+You can run the backend in a hardened, production-grade container using Docker or Docker Compose:
+
+```bash
+# Build and run with Docker Compose (Root directory)
+docker compose up --build
+
+# Or build and run standalone container:
+cd backend
+docker build -t ledgerflow-backend .
+docker run -p 3000:3000 --env-file .env ledgerflow-backend
+```
+
+**Container Security & Production Features:**
+* **Lightweight Alpine Base (`node:20-alpine`)**: Minimal attack surface with fast deployment layers.
+* **Least-Privilege Execution (`USER node`)**: Runs without root permissions for container security compliance.
+* **Automated Healthchecks**: Built-in container health monitoring polling `/api/health`.
+
